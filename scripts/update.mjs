@@ -19,13 +19,19 @@ const backupRoot = path.join(root, 'backups');
 
 const skipRestart = process.argv.includes('--skip-restart');
 
+// npm and pm2 are .cmd shims on Windows, and current Node refuses to spawn those without a
+// shell. Every command and argument below is a fixed literal written in this file, with the
+// single exception of the pm2 process name, which is checked against a strict pattern before
+// it is ever passed along.
+const isWindows = process.platform === 'win32';
+
 function run(command, args, options = {}) {
   console.log(`  $ ${command} ${args.join(' ')}`);
-  return execFileSync(command, args, { cwd: root, stdio: 'inherit', ...options });
+  return execFileSync(command, args, { cwd: root, stdio: 'inherit', shell: isWindows, ...options });
 }
 
 function runQuiet(command, args) {
-  return execFileSync(command, args, { cwd: root, encoding: 'utf8' }).trim();
+  return execFileSync(command, args, { cwd: root, encoding: 'utf8', shell: isWindows }).trim();
 }
 
 function fail(message) {
@@ -116,7 +122,8 @@ if (!skipRestart) {
     const processes = JSON.parse(list);
     const match = processes.find((p) => p.name && /jainco/i.test(p.name));
 
-    if (match) {
+    // Only restart a name that is plainly a name, since it reaches a shell on Windows.
+    if (match && /^[\w.-]+$/.test(match.name)) {
       console.log(`\n  Restarting pm2 process "${match.name}"`);
       run('pm2', ['restart', match.name]);
     } else {
