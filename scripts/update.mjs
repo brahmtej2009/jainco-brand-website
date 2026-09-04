@@ -89,6 +89,11 @@ if (fs.existsSync(dataDir)) {
 
   console.log(`  Backing up data/ to ${path.relative(root, backupDir)}`);
   fs.mkdirSync(backupRoot, { recursive: true });
+
+  // These backups hold the live database and every customer photo. Give the folder its own
+  // ignore rule so it can never be swept into a commit by an absent-minded `git add .`.
+  fs.writeFileSync(path.join(backupRoot, '.gitignore'), '*\n');
+
   fs.cpSync(dataDir, backupDir, { recursive: true });
 } else {
   console.log('  No data/ folder yet, nothing to back up.');
