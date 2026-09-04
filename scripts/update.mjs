@@ -8,7 +8,7 @@
 // What it will never do: touch anything in data/ except to copy it somewhere safer first.
 // The catalogue database and every uploaded photo live there, and nothing in this script
 // deletes, overwrites, or resets that folder.
-import { execFileSync } from 'node:child_process';
+import { execFileSync, execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -25,13 +25,22 @@ const skipRestart = process.argv.includes('--skip-restart');
 // it is ever passed along.
 const isWindows = process.platform === 'win32';
 
+/**
+ * Windows needs a shell to reach npm and pm2, since those are .cmd shims. Elsewhere the
+ * command is executed directly, with no shell involved at all.
+ */
+function exec(command, args, options) {
+  if (isWindows) return execSync([command, ...args].join(' '), options);
+  return execFileSync(command, args, options);
+}
+
 function run(command, args, options = {}) {
   console.log(`  $ ${command} ${args.join(' ')}`);
-  return execFileSync(command, args, { cwd: root, stdio: 'inherit', shell: isWindows, ...options });
+  return exec(command, args, { cwd: root, stdio: 'inherit', ...options });
 }
 
 function runQuiet(command, args) {
-  return execFileSync(command, args, { cwd: root, encoding: 'utf8', shell: isWindows }).trim();
+  return String(exec(command, args, { cwd: root, encoding: 'utf8' })).trim();
 }
 
 function fail(message) {
