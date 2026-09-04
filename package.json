@@ -15,7 +15,8 @@
     "seed": "node scripts/seed.mjs",
     "security:check": "node scripts/security-check.mjs",
     "images:clear": "node scripts/clean-images.mjs",
-    "test:smoke": "node scripts/smoke-test.mjs"
+    "test:smoke": "node scripts/smoke-test.mjs",
+    "update": "node scripts/update.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

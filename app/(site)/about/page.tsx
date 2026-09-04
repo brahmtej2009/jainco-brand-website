@@ -11,40 +11,40 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'About',
   description:
-    'JainCo is a home, gifting and party supplies shop: glassware, decor, storage, gift wrap and packaging, chocolate moulds and baking pieces, all under one roof.',
+    'JainCo is a home, gifting and party supplies shop. Glassware, decor, storage, gift wrap and baking pieces, all in one place.',
 };
 
 const STAGES = [
   {
     step: 'Find it',
-    body: 'Browse the catalogue by department and note the reference number under any piece that interests you.',
+    body: 'Have a look through the catalogue. Each piece has a reference number under the photo, jot that down if you like something.',
   },
   {
     step: 'Ask',
-    body: 'Send the numbers and quantities through the contact form, or call the shop. We confirm the price and what is in stock.',
+    body: 'Send us the numbers and how many you need, through the form or over a call, and we will tell you the price and whether it is in stock.',
   },
   {
     step: 'Collect',
-    body: 'We set your order aside at the counter. Gifts can be wrapped and boxed before you take them.',
+    body: 'We keep it ready for you at the counter. Happy to wrap and box anything that is a gift.',
   },
 ];
 
 const STANDARDS = [
   {
     title: 'Six departments',
-    body: 'Table, kitchen, decor, gifting and baking in one shop, so one visit covers what would otherwise take several.',
+    body: 'Table, kitchen, decor, gifting and baking, all in one shop, so you are not running between four different places.',
   },
   {
     title: 'Details listed',
-    body: 'Dimensions, capacity and what each piece is sold as are recorded in the catalogue.',
+    body: 'We put down the size, the capacity, and how a piece is sold, right there in the catalogue.',
   },
   {
     title: 'Gifting in one place',
-    body: 'Wrap, ribbon, boxes and tags sit alongside the gifts themselves.',
+    body: 'Wrap, ribbon, boxes and tags are kept next to the gifts, not in a separate corner.',
   },
   {
-    title: 'Seasonal stock',
-    body: 'Festive, wedding and party lines arrive through the year and are added to the catalogue.',
+    title: 'Stock changes with the season',
+    body: 'Festive, wedding and party lines come in through the year and we add them as they arrive.',
   },
 ];
 
@@ -57,7 +57,7 @@ export default function AboutPage() {
       <PageHeader
         eyebrow="About JainCo"
         title="One shop, many departments"
-        lede="Six departments covering the table, the kitchen, the home and gifting, with the catalogue kept in step with the shelves."
+        lede="Six departments for the table, the kitchen, the home and gifting. We keep the catalogue matching what is actually on the shelves."
         meta={[
           { label: 'Departments', value: String(stats.categories) },
           { label: 'Catalogued items', value: String(stats.products) },
@@ -71,12 +71,13 @@ export default function AboutPage() {
             <div className="glass sheen p-8 sm:p-10">
               <p className="eyebrow">Who we serve</p>
               <p className="lede mt-5">
-                Most customers come in for something specific: a set of glasses, jars for a kitchen
-                shelf, a piece of decor, moulds for a batch of chocolates, or wrap for a present.
+                Most people who walk in already know roughly what they want. A set of glasses, jars
+                for the kitchen shelf, something for a bare corner of a room, moulds for chocolates,
+                or wrap for a gift that needs sorting last minute.
               </p>
               <p className="lede mt-4">
-                Larger orders are equally welcome, whether that is corporate gifting, a wedding or a
-                festival. Tell us the quantities and we will tell you what we can supply.
+                We also do bigger orders, corporate gifting, weddings, festival stock, that sort of
+                thing. Just tell us the quantity and we will let you know what we can put together.
               </p>
             </div>
           </Reveal>
@@ -85,12 +86,13 @@ export default function AboutPage() {
             <div className="glass sheen h-full p-8 sm:p-10">
               <p className="eyebrow">Prices and availability</p>
               <p className="lede mt-5">
-                Prices vary with the piece and the quantity, and stock changes through the year, so we
-                confirm both on request rather than publishing figures that go out of date.
+                We do not put prices on the website. They depend on the piece, the quantity, and
+                stock changes often enough through the year that a printed number would go stale
+                fast. Easier to just ask.
               </p>
               <p className="lede mt-4">
-                Send the item numbers you are interested in and we will reply with prices, what is in
-                stock, and how much of it.
+                Send us the item numbers you have your eye on and we will get back to you with the
+                price and how many we have on hand.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
@@ -135,7 +137,7 @@ export default function AboutPage() {
       {/* ---------------- standards ---------------- */}
       <section className="shell pt-24">
         <Reveal>
-          <p className="eyebrow">Why people come back</p>
+          <p className="eyebrow">Why people keep coming back</p>
         </Reveal>
 
         <RevealGroup className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -167,8 +169,8 @@ export default function AboutPage() {
               Tell us what you need.
             </h2>
             <p className="lede relative mx-auto mt-5 max-w-lg">
-              Send the item numbers and quantities. We will confirm prices and availability and hold
-              them for you.
+              Send us the item numbers and how many you need. We will check the price and stock and
+              hold it for you.
             </p>
 
             <div className="relative mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">

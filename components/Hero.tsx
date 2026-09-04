@@ -248,7 +248,7 @@ export default function Hero() {
         </div>
 
         <motion.p
-          className="lede mt-6 max-w-xl text-balance"
+          className="lede mt-6 max-w-xl text-balance max-sm:text-[#eaf4ff] max-sm:[text-shadow:0_2px_14px_rgba(4,7,14,0.85)]"
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.1, delay: 1.05, ease: EASE }}

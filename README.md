@@ -149,17 +149,32 @@ nothing else on the server matters if you lose it.
 cp -r data backups/data-$(date +%Y%m%d)
 ```
 
-To update a live site:
+To update a live site to the latest version from git:
 
 ```bash
+npm run update
+```
+
+This backs up the `data` folder first, then pulls the latest code, installs any new
+dependencies, applies database migrations (adds new tables or columns a newer version
+needs, never removes or changes existing ones), rebuilds, and restarts pm2 if it finds a
+matching process. If anything fails partway through, it stops there and tells you, and
+nothing in `data` has been touched either way, so your catalogue and admin accounts are
+never at risk.
+
+It refuses to run if there are uncommitted changes in the checkout, so it never overwrites
+something you were in the middle of editing on the server.
+
+If you would rather do it by hand, this is all `npm run update` is doing:
+
+```bash
+cp -r data backups/data-$(date +%Y%m%d)
 git pull
 npm ci
+npm run db:init
 npm run build
 pm2 restart jainco
 ```
-
-This never touches the `data` folder, so your catalogue and admin accounts are safe across
-updates.
 
 ### Native dependency
 
