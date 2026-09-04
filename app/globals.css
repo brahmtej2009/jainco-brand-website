@@ -1,0 +1,679 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   JainCo — glass design system
+   ============================================================ */
+
+:root {
+  --ink: #04070e;
+  --ink-2: #070d18;
+  --ink-3: #0b1526;
+
+  --frost: #eaf2ff;
+  --muted: rgba(214, 232, 255, 0.62);
+  --faint: rgba(214, 232, 255, 0.38);
+
+  --aqua: #79e6ff;
+  --aqua-deep: #2f9bc9;
+  --aqua-pale: #cdf6ff;
+  --azure: #5b8cff;
+
+  --pane: rgba(255, 255, 255, 0.055);
+  --pane-strong: rgba(255, 255, 255, 0.1);
+  --edge: rgba(255, 255, 255, 0.14);
+  --edge-bright: rgba(210, 245, 255, 0.55);
+
+  /*
+   * Backdrop blur is the most expensive thing on the page: the browser has to resample
+   * whatever sits behind the element, and it redoes that whenever the element moves or the
+   * page scrolls. Kept moderate here, and reserved for the handful of panes that genuinely
+   * sit over busy artwork. Repeating tiles use .glass-lite instead.
+   */
+  --blur: 14px;
+  --radius: 22px;
+
+  --shell: min(1150px, 100% - 2.5rem);
+  --ease-glass: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+* {
+  border-color: var(--edge);
+}
+
+html {
+  /*
+   * The whole interface is set at 80% of the browser default, which is the density the
+   * catalogue reads best at. Everything is sized in rem, so this scales type, spacing and
+   * controls together, exactly like reducing the browser zoom, while viewport units and
+   * fixed overlays keep working normally.
+   */
+  font-size: 80%;
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--ink);
+  color: var(--frost);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  overflow-x: hidden;
+  min-height: 100svh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* A deep, cold room for the glass to sit in. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(120% 80% at 12% -10%, rgba(45, 120, 190, 0.28), transparent 62%),
+    radial-gradient(100% 70% at 96% 4%, rgba(121, 230, 255, 0.16), transparent 58%),
+    radial-gradient(140% 100% at 50% 118%, rgba(23, 62, 120, 0.34), transparent 66%),
+    linear-gradient(180deg, var(--ink) 0%, var(--ink-2) 46%, var(--ink) 100%);
+}
+
+/*
+ * Film grain, which keeps large blurred fields from banding. Deliberately without a blend
+ * mode: blending a full-screen fixed layer forces the compositor to recombine it with
+ * everything underneath on every scrolled frame, which is a real cost on weak hardware for
+ * a texture nobody consciously notices. A plain low-opacity overlay reads the same and
+ * composites for free. Skipped entirely on small screens, where the GPU is weakest.
+ */
+@media (min-width: 768px) {
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
+
+/* The glass shard replaces the pointer; text fields keep their caret so typing feels normal. */
+.has-glass-cursor,
+.has-glass-cursor * {
+  cursor: none !important;
+}
+.has-glass-cursor input,
+.has-glass-cursor textarea,
+.has-glass-cursor select,
+.has-glass-cursor [contenteditable='true'] {
+  cursor: auto !important;
+}
+
+::selection {
+  background: rgba(121, 230, 255, 0.28);
+  color: #fff;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+}
+::-webkit-scrollbar-thumb {
+  border-radius: 99px;
+  background: linear-gradient(180deg, rgba(121, 230, 255, 0.5), rgba(91, 140, 255, 0.35));
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+:focus-visible {
+  outline: 2px solid var(--aqua);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+@layer components {
+  .shell {
+    width: var(--shell);
+    margin-inline: auto;
+  }
+
+  /* ---------- the pane ---------- */
+  .glass {
+    position: relative;
+    isolation: isolate;
+    border-radius: var(--radius);
+    background:
+      linear-gradient(158deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.055) 42%, rgba(190, 235, 255, 0.03) 100%);
+    backdrop-filter: blur(var(--blur)) saturate(140%);
+    -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
+    box-shadow:
+      0 1px 0 0 rgba(255, 255, 255, 0.2) inset,
+      0 -1px 0 0 rgba(255, 255, 255, 0.05) inset,
+      0 28px 60px -32px rgba(0, 0, 0, 0.85),
+      0 2px 10px -4px rgba(0, 0, 0, 0.5);
+  }
+
+  /*
+   * The same pane, without the live backdrop blur. Used for anything that repeats (product
+   * tiles, collection cards) or that moves while the page scrolls. A grid of twenty blurred
+   * panes makes the browser run twenty backdrop resamples per scrolled frame, which is what
+   * made scrolling heavy on modest hardware. These sit on an almost flat background anyway,
+   * so the bevel, gradient and shadow carry the look on their own.
+   */
+  .glass-lite {
+    position: relative;
+    isolation: isolate;
+    border-radius: var(--radius);
+    background:
+      linear-gradient(158deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.045) 42%, rgba(190, 235, 255, 0.025) 100%),
+      rgba(10, 18, 32, 0.55);
+    box-shadow:
+      0 1px 0 0 rgba(255, 255, 255, 0.18) inset,
+      0 -1px 0 0 rgba(255, 255, 255, 0.05) inset,
+      0 20px 44px -30px rgba(0, 0, 0, 0.8);
+  }
+
+  /* Hairline that catches light at the top-left and fades away: a real bevel, not a flat border. */
+  .glass::before,
+  .glass-lite::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      150deg,
+      rgba(255, 255, 255, 0.65) 0%,
+      rgba(160, 220, 255, 0.22) 26%,
+      rgba(255, 255, 255, 0.05) 55%,
+      rgba(140, 200, 255, 0.3) 100%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .glass-solid {
+    background:
+      linear-gradient(158deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.06) 60%, rgba(255, 255, 255, 0.03) 100%);
+  }
+
+  /* Light travelling across the surface on hover. */
+  .sheen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 3;
+    background: linear-gradient(105deg, transparent 32%, rgba(255, 255, 255, 0.22) 47%, rgba(210, 245, 255, 0.05) 55%, transparent 68%);
+    transform: translateX(-120%);
+    opacity: 0;
+    transition: transform 0.95s var(--ease-glass), opacity 0.3s ease;
+  }
+  .sheen:hover::after,
+  .sheen:focus-visible::after {
+    transform: translateX(120%);
+    opacity: 1;
+  }
+
+  /* ---------- type ---------- */
+  .display {
+    font-family: var(--font-display), Georgia, serif;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    line-height: 0.98;
+  }
+
+  .eyebrow {
+    font-size: 0.68rem;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-weight: 500;
+  }
+
+  .lede {
+    color: var(--muted);
+    line-height: 1.75;
+    font-size: clamp(0.98rem, 0.4vw + 0.88rem, 1.12rem);
+  }
+
+  /* Chrome-like text for headline accents. */
+  .chrome {
+    background: linear-gradient(178deg, #ffffff 4%, var(--aqua-pale) 34%, var(--aqua) 58%, rgba(91, 140, 255, 0.85) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* ---------- controls ---------- */
+  .btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.95rem 1.7rem;
+    border-radius: 999px;
+    font-size: 0.86rem;
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    overflow: hidden;
+    isolation: isolate;
+    transition: transform 0.4s var(--ease-glass), box-shadow 0.4s var(--ease-glass), color 0.3s ease;
+    white-space: nowrap;
+  }
+  .btn:hover {
+    transform: translateY(-2px);
+  }
+  .btn:active {
+    transform: translateY(0) scale(0.985);
+  }
+
+  .btn-primary {
+    color: #03131c;
+    background: linear-gradient(140deg, #ffffff 0%, var(--aqua-pale) 38%, var(--aqua) 100%);
+    box-shadow: 0 14px 34px -14px rgba(121, 230, 255, 0.85), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  }
+  .btn-primary:hover {
+    box-shadow: 0 22px 48px -16px rgba(121, 230, 255, 0.95), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  }
+
+  .btn-ghost {
+    color: var(--frost);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16) inset, 0 18px 40px -26px rgba(0, 0, 0, 0.9);
+  }
+  .btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 1px rgba(210, 245, 255, 0.4) inset, 0 22px 46px -24px rgba(0, 0, 0, 0.9);
+  }
+
+  .field {
+    width: 100%;
+    border-radius: 14px;
+    padding: 0.72rem 0.95rem;
+    font-size: 0.92rem;
+    color: var(--frost);
+    background: rgba(255, 255, 255, 0.045);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+    transition: box-shadow 0.25s ease, background 0.25s ease;
+  }
+  .field::placeholder {
+    color: rgba(214, 232, 255, 0.3);
+  }
+  .field:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.075);
+    box-shadow: 0 0 0 1px rgba(121, 230, 255, 0.55) inset, 0 0 24px -6px rgba(121, 230, 255, 0.5);
+  }
+  select.field option {
+    background: #0b1526;
+    color: var(--frost);
+  }
+
+  .label {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-bottom: 0.45rem;
+  }
+
+  /* ---------- item id badge ---------- */
+  .item-id {
+    position: absolute;
+    top: 0.65rem;
+    right: 0.65rem;
+    z-index: 5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 0.45rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+    color: #fff;
+    background: radial-gradient(120% 120% at 30% 20%, #ff6b6b 0%, #e02121 55%, #a80f0f 100%);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.32) inset,
+      0 0 0 1px rgba(0, 0, 0, 0.25),
+      0 6px 16px -6px rgba(190, 20, 20, 0.9);
+  }
+
+  .item-id-lg {
+    min-width: 2.4rem;
+    height: 2.4rem;
+    font-size: 0.82rem;
+    top: 0.85rem;
+    right: 0.85rem;
+  }
+
+  /* ---------- masonry ---------- */
+  .masonry {
+    column-gap: 1.15rem;
+    columns: 1;
+  }
+  @media (min-width: 480px) {
+    .masonry {
+      columns: 2;
+    }
+  }
+  @media (min-width: 900px) {
+    .masonry {
+      columns: 3;
+    }
+  }
+  @media (min-width: 1360px) {
+    .masonry {
+      columns: 4;
+    }
+  }
+  .masonry > * {
+    break-inside: avoid;
+    margin-bottom: 1.15rem;
+    display: block;
+    /*
+     * A long collection can hold dozens of tiles. This lets the browser skip layout and
+     * painting for the ones that are off screen, and the intrinsic size keeps the scrollbar
+     * honest so nothing jumps as they come into view.
+     */
+    content-visibility: auto;
+    contain-intrinsic-size: auto 420px;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    scrollbar-width: none;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+  .refract {
+    filter: url(#glass-refract);
+  }
+  .drag-none {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+}
+
+/* ---------- keyframes ---------- */
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2%, -3%, 0) scale(1.06);
+  }
+}
+
+@keyframes drift {
+  0% {
+    transform: translate3d(-6%, 0, 0) rotate(0deg);
+  }
+  100% {
+    transform: translate3d(6%, 0, 0) rotate(8deg);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.85);
+  }
+  70% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+@keyframes scroll-hint {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translateY(7px);
+    opacity: 1;
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 18s ease-in-out infinite;
+}
+.animate-drift {
+  animation: drift 30s ease-in-out infinite alternate;
+}
+.animate-scroll-hint {
+  animation: scroll-hint 2.1s ease-in-out infinite;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 25%, rgba(255, 255, 255, 0.09) 50%, rgba(255, 255, 255, 0.04) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
+   Admin: a plain, high-contrast working interface.
+   No blur, no glass, no decoration that competes with the data.
+   ============================================================ */
+
+/*
+ * Declared on :root, not just .admin: an admin dialog (the image cropper, for one) is
+ * portaled straight onto document.body to sit above everything else, which places it
+ * outside the .admin wrapper. A variable scoped only to .admin would resolve to nothing
+ * there, so its background silently drops to transparent. Living on :root, these are
+ * visible everywhere, but the public site never reads them, so nothing else changes.
+ */
+:root {
+  --a-bg: #0a0f16;
+  --a-surface: #121a25;
+  --a-surface-2: #18222f;
+  --a-line: #26313f;
+  --a-line-soft: #1d2733;
+  --a-text: #e8eef6;
+  --a-muted: #9aa9bb;
+  --a-faint: #6c7b8d;
+  --a-accent: #4aa8ff;
+  --a-danger: #ff6b6b;
+}
+
+.admin {
+  min-height: 100svh;
+  background: var(--a-bg);
+  color: var(--a-text);
+}
+
+/* The public site's ambient layers have no place behind a data table. */
+.admin-root body::before,
+body:has(.admin)::before {
+  display: none;
+}
+
+@layer components {
+  .a-card {
+    background: var(--a-surface);
+    border: 1px solid var(--a-line);
+    border-radius: 10px;
+  }
+
+  .a-section-title {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--a-faint);
+  }
+
+  .a-label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--a-muted);
+    margin-bottom: 0.35rem;
+  }
+
+  .a-input {
+    width: 100%;
+    border-radius: 7px;
+    padding: 0.55rem 0.7rem;
+    font-size: 0.88rem;
+    line-height: 1.45;
+    color: var(--a-text);
+    background: var(--a-bg);
+    border: 1px solid var(--a-line);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .a-input::placeholder {
+    color: var(--a-faint);
+  }
+  .a-input:focus {
+    outline: none;
+    border-color: var(--a-accent);
+    box-shadow: 0 0 0 3px rgba(74, 168, 255, 0.18);
+  }
+  select.a-input option {
+    background: var(--a-surface);
+    color: var(--a-text);
+  }
+
+  .a-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    border-radius: 7px;
+    padding: 0.55rem 0.95rem;
+    font-size: 0.84rem;
+    font-weight: 500;
+    white-space: nowrap;
+    border: 1px solid var(--a-line);
+    background: var(--a-surface-2);
+    color: var(--a-text);
+    transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  }
+  .a-btn:hover {
+    background: #202c3c;
+    border-color: #33404f;
+  }
+  .a-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .a-btn-primary {
+    background: var(--a-accent);
+    border-color: var(--a-accent);
+    color: #04101c;
+    font-weight: 600;
+  }
+  .a-btn-primary:hover {
+    background: #6bb9ff;
+    border-color: #6bb9ff;
+  }
+
+  .a-btn-danger {
+    color: var(--a-danger);
+    border-color: #4a2730;
+    background: #241820;
+  }
+  .a-btn-danger:hover {
+    background: #32202a;
+    border-color: #663540;
+  }
+
+  .a-btn-quiet {
+    background: transparent;
+    border-color: transparent;
+    color: var(--a-muted);
+  }
+  .a-btn-quiet:hover {
+    background: var(--a-surface-2);
+    color: var(--a-text);
+  }
+
+  .a-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid var(--a-line-soft);
+  }
+  .a-row:last-child {
+    border-bottom: none;
+  }
+  .a-row:hover {
+    background: var(--a-surface-2);
+  }
+
+  .a-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    border-radius: 999px;
+    padding: 0.15rem 0.55rem;
+    font-size: 0.7rem;
+    font-weight: 500;
+    background: var(--a-surface-2);
+    border: 1px solid var(--a-line);
+    color: var(--a-muted);
+  }
+
+  .a-ref {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #ff7a7a;
+  }
+}
